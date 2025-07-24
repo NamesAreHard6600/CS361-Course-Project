@@ -9,7 +9,7 @@ class Alarm:
         self.hour = hour
         self.minutes = minutes
         self.pm = pm
-        self.one_time = True
+        self.one_time = one_time
         self.days = [("S", True), ("M", True), ("T", True), ("W", True), ("Th", True), ("F", True), ("Sa", True)]
 
         self.total_columns = 15
@@ -22,7 +22,7 @@ class Alarm:
 
         # Configure columns
         for i in range(self.total_columns):
-            self.frame.columnconfigure(i, weight=1 if i == self.total_columns - 1 else 0)
+            self.frame.columnconfigure(i, weight=1 if i >= 0 else 0)
 
         # Label
         self.alarm_label = Label(self.frame, text=self.title, bg="darkgrey", font=("MS Reference Sans Serif",20))
@@ -38,10 +38,19 @@ class Alarm:
 
         if self.one_time:
             self.one_time_label = Label(self.frame, text="One Time", bg="darkgrey", font=("MS Reference Sans Serif",16))
-            self.one_time_label.grid(row=2, column=0, columnspan=self.total_columns-1, sticky="nw")
+            self.one_time_label.grid(row=2, column=0, columnspan=self.total_columns-2, sticky="nw")
+
+        self.edit_button = Button(self.frame, text="Edit", bg="blue", command=self.edit_alarm)
+        self.edit_button.grid(row=2, column=self.total_columns-2, sticky="se")
 
         self.delete_button = Button(self.frame, text="Delete", bg="red", command=self.delete_alarm)
         self.delete_button.grid(row=2, column=self.total_columns-1, sticky="se")
+
+    def get_alarm_num(self):
+        return self.ui.get_alarm_num(self)
+
+    def edit_alarm(self):
+        self.ui.edit_alarm(self.get_alarm_num())
 
     def delete_alarm(self):
         self.ui.delete_alarm(self)

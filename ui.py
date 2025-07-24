@@ -66,6 +66,11 @@ class UI:
     def get_num_alarms(self):
         return len(self.alarms)
 
+    def get_alarm_num(self, alarm):
+        for i, a in enumerate(self.alarms):
+            if alarm == a:
+                return i
+
     def show_home(self):
         # Remove all previous, add everything again
         # self.hide_home()
@@ -83,7 +88,6 @@ class UI:
     # self.editing must be set
     def show_edit(self):
         if self.editing == -1 or self.editing >= self.get_num_alarms():
-            print(self.editing)
             raise "EDITING ALARM OUT OF BOUNDS"
         self.title_edit.delete(0, END)
         self.title_edit.insert(0, self.alarms[self.editing].title)
@@ -94,7 +98,6 @@ class UI:
         self.title_edit.grid_forget()
 
     def apply_edit(self):
-        print(self.editing)
         alarm = self.alarms[self.editing]
         alarm.title = self.title_edit.get()
         alarm.form_frame()
@@ -114,3 +117,6 @@ class UI:
 
     def display(self):
         self.home.mainloop()
+
+    def test(self, event):
+        print(event)
