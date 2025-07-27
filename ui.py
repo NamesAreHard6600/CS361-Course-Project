@@ -3,6 +3,7 @@
 
 
 from tkinter import *
+from customtkinter import *
 from tkinter import messagebox
 from alarm import Alarm
 import random
@@ -14,12 +15,14 @@ class UI:
         self.home = Tk()
         self.home.geometry("312x624")
         self.home.title("Wake.exe")
+        self.home.grid_rowconfigure(1, weight=1)
         self.home.grid_columnconfigure(0, weight=1)
         # self.root.grid_rowconfigure(0, weight=1)
 
         # Home
         self.title = Label(self.home, text="Wake.exe", font=("MS Sans Serif",36))
-        self.main_frame = Frame(self.home, bg="darkgrey", bd=3)
+        self.main_frame = CTkScrollableFrame(self.home)
+        self.main_frame.grid_columnconfigure(0, weight=1)
 
         # self.scrollbar = Scrollbar(self.home)
 
@@ -37,12 +40,10 @@ class UI:
             test_button = Button(self.home, text="Debug Testing", command=self.debug_test)
             test_button.grid(row=6, column=0)
 
-        self.add_alarm()
-        self.add_alarm()
         self.show_home()
 
     def add_alarm(self):
-        alarm = Alarm(self, "Test", random.randint(1, 12), 30, False)
+        alarm = Alarm(self, "Alarm", 12, 0, False)
         self.alarms.append(alarm)
         self.show_home()
 
@@ -76,7 +77,7 @@ class UI:
         # self.hide_home()
         self.title.grid(row=0, column=0, sticky="new")
         # self.scrollbar.grid(row=0, column=1, rowspan=20, sticky="nse")
-        self.main_frame.grid(row=1, column=0, sticky="new")
+        self.main_frame.grid(row=1, column=0, sticky="news")
         for i, alarm in enumerate(self.alarms):
             alarm.show_frame(i+1)
 
@@ -84,6 +85,7 @@ class UI:
         self.title.grid_forget()
         for alarm in self.alarms:
             alarm.hide_frame()
+        self.main_frame.grid_forget()
 
     # self.editing must be set
     def show_edit(self):
@@ -91,7 +93,7 @@ class UI:
             raise "EDITING ALARM OUT OF BOUNDS"
         self.title_edit.delete(0, END)
         self.title_edit.insert(0, self.alarms[self.editing].title)
-        self.title_edit.grid(row=1, column=0, sticky="we")
+        self.title_edit.grid(row=1, column=0, sticky="nwe")
 
     def hide_edit(self):
         self.editing = -1
@@ -100,7 +102,7 @@ class UI:
     def apply_edit(self):
         alarm = self.alarms[self.editing]
         alarm.title = self.title_edit.get()
-        alarm.form_frame()
+        alarm.update_frame()
 
     def debug_test(self):
         if not self.title_edit.grid_info():
