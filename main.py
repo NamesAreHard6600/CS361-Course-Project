@@ -4,7 +4,7 @@ import pygame
 
 def main():
     pygame.mixer.init()
-    window = UI(True)
+    window = UI(False)
     window.display()
 
 if __name__ == '__main__':

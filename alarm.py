@@ -63,9 +63,9 @@ class Alarm:
         )
 
         if self.one_time:
-            self.one_time_label.grid(row=2, column=0, sticky="nw")
+            self.one_time_label.grid(row=2, column=0, sticky="nw", pady=5, padx=5)
         else:
-            self.daily_label.grid(row=2, column=0, sticky="nw")
+            self.daily_label.grid(row=2, column=0, sticky="nw", pady=5, padx=5)
             self.fill_daily_text()
 
         self.enable_switch = CTkSwitch(self.frame, text="", fg_color="red", progress_color="green", variable=self.enabled, command=self.switch_toggled, width=45)
@@ -75,7 +75,7 @@ class Alarm:
         self.edit_button.grid(row=0, column=self.total_columns-1, sticky="e")
 
         self.delete_button = Button(self.frame, text="Delete", bg="red", command=self.delete_alarm)
-        self.delete_button.grid(row=2, column=self.total_columns-1, sticky="e")
+        self.delete_button.grid(row=2, column=self.total_columns-1, sticky="e", pady=2)
 
         self.update_frame()
 

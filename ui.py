@@ -36,15 +36,15 @@ class UI:
         self.edit_columns = 7
         self.edit_rows = 6
         self.edit_exit_button = CTkButton(self.home, text="X", text_color="black", border_color="white", hover_color="darkred", border_width=2, fg_color="red", font=("MS Reference Sans Serif", 24), corner_radius=5, command=self.cancel_edit, height=38, width=38)
-        self.title_edit = Entry(self.home, font=("MS Reference Sans Serif", 16))
+        self.title_edit = CTkEntry(self.home, font=("MS Reference Sans Serif", 16), corner_radius=5, fg_color="white", text_color="black")
         vcmdh = (self.home.register(self.is_hour), '%P')
         vcmdm = (self.home.register(self.is_minute), '%P')
-        self.hour_entry = Entry(self.home, validate='key', validatecommand=vcmdh, justify="right", font=("MS Reference Sans Serif", 16))
+        self.hour_entry = CTkEntry(self.home, validate='key', validatecommand=vcmdh, justify="right", font=("MS Reference Sans Serif", 16), corner_radius=5, fg_color="white", text_color="black")
         self.semicolon = Label(self.home, text=":", fg="white", bg="grey17", justify="center", font=("MS Reference Sans Serif", 16))
-        self.minute_entry = Entry(self.home, validate='key', validatecommand=vcmdm, font=("MS Reference Sans Serif", 16))
-        self.one_time_text = Label(self.home, text="One-Time", bg="grey17", fg="white")
+        self.minute_entry = CTkEntry(self.home, validate='key', validatecommand=vcmdm, font=("MS Reference Sans Serif", 16), corner_radius=5, fg_color="white", text_color="black")
+        self.one_time_text = Label(self.home, text="One-Time", bg="grey17", fg="white", font=("MS Reference Sans Serif", 12))
         self.type_switch = CTkSwitch(self.home, text="", width=0, fg_color="grey", progress_color="grey", command=self.update_edit)
-        self.daily_text = Label(self.home, text="Daily", bg="grey17", fg="white")
+        self.daily_text = Label(self.home, text="Daily", bg="grey17", fg="white", font=("MS Reference Sans Serif", 12))
 
         self.days = {"Sunday": "S",
                      "Monday": "M",
@@ -63,9 +63,9 @@ class UI:
         vcmdst = (self.home.register(self.is_snooze_number), '%P')
         vcmdsl = (self.home.register(self.is_snooze_length), '%P')
         self.edit_snooze_number_label = Label(self.home, text="Snoozes: ", bg="grey17", fg="white", justify="right", font=("MS Reference Sans Serif", 16))
-        self.edit_snooze_number = Entry(self.home, validate="key", validatecommand=vcmdst, font=("MS Reference Sans Serif", 16))
+        self.edit_snooze_number = CTkEntry(self.home, validate="key", validatecommand=vcmdst, font=("MS Reference Sans Serif", 16), corner_radius=5, fg_color="white", text_color="black")
         self.edit_snooze_length_label = Label(self.home, text="Time (Minutes): ", bg="grey17", fg="white", justify="right", font=("MS Reference Sans Serif", 16))
-        self.edit_snooze_length = Entry(self.home, validate="key", validatecommand=vcmdsl, font=("MS Reference Sans Serif", 16))
+        self.edit_snooze_length = CTkEntry(self.home, validate="key", validatecommand=vcmdsl, font=("MS Reference Sans Serif", 16), corner_radius=5, fg_color="white", text_color="black")
 
         self.save_button = CTkButton(self.home, text="Save", text_color="black", border_color="white", hover_color="darkgreen", border_width=2, fg_color="green", font=("MS Reference Sans Serif", 24), corner_radius=5, command=self.apply_edit, height=40)
 
@@ -153,7 +153,7 @@ class UI:
 
         self.title_edit.delete(0, END)
         self.title_edit.insert(0, alarm.title)
-        self.title_edit.grid(row=1, column=0, columnspan=self.edit_columns, sticky="nwe", padx=5, pady=5)
+        self.title_edit.grid(row=1, column=0, columnspan=self.edit_columns, sticky="nwe", padx=10, pady=10)
 
         self.hour_entry.delete(0, END)
         self.hour_entry.insert(0, alarm.hour)
@@ -162,7 +162,7 @@ class UI:
         self.semicolon.grid(row=2, column=3, sticky="wens")
 
         self.minute_entry.delete(0, END)
-        self.minute_entry.insert(0, alarm.minutes)
+        self.minute_entry.insert(0, f"{alarm.minutes:02d}")
         self.minute_entry.grid(row=2, column=4, columnspan=1, sticky="nw", padx=5, pady=5)
 
         self.one_time_text.grid(row=3, column=0, columnspan=3, sticky="ne", padx=5, pady=5)
@@ -179,7 +179,7 @@ class UI:
                 button.select()
             else:
                 button.deselect()
-            button.grid(row=4, column=i, sticky="nsew", padx=5)
+            button.grid(row=4, column=i, sticky="nsew", padx=10)
 
         self.edit_snooze_number_label.grid(row=5, column=0, columnspan=2, sticky="nwe", padx=5, pady=5)
         self.edit_snooze_number.delete(0, END)
@@ -192,7 +192,7 @@ class UI:
         self.edit_snooze_length.insert(0, alarm.snooze_time)
         self.edit_snooze_length.grid(row=5, column=6, columnspan=1, sticky="nwe", padx=5, pady=5)
 
-        self.save_button.grid(row=6, column=0, columnspan=self.edit_columns, sticky="new", padx=5, pady=5)
+        self.save_button.grid(row=6, column=0, columnspan=self.edit_columns, sticky="new", padx=10, pady=10)
 
         self.update_edit()
 
@@ -248,7 +248,7 @@ class UI:
         self.show_home()
 
     def cancel_edit(self):
-        response = messagebox.askyesno(f"Cancel Edits",f"Are you sure you want to cancel your edits? You will have to edit the alarm again.")
+        response = messagebox.askyesno(f"Cancel Edits",f"Are you sure you want to cancel your edits?\nYou will have to edit the alarm again.")
         if not response:
             return
         self.hide_all()

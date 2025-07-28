@@ -14,5 +14,4 @@ Increment Decrement Buttons on Hour/Minute Input + Scroll Wheel functionality
 BUG: Canceling an added alarm does not remove the alarm
 
 Most Important:
-Sound
 Polish
