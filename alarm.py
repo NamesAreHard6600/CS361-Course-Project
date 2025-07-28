@@ -12,7 +12,8 @@ class Alarm:
         self.pm = pm
         self.one_time = one_time
         self.enabled = BooleanVar(value=True)
-        self.days = [("S", True), ("M", True), ("T", True), ("W", True), ("Th", True), ("F", True), ("Sa", True)]
+        self.days = ["S", "M", "T", "W", "Th", "F", "Sa"]
+        self.day_vars = [True for _ in range(7)]
 
         self.total_columns = 3
 
@@ -42,11 +43,29 @@ class Alarm:
 
         self.one_time_label = Label(self.frame, text="One Time", bg="darkgrey",
                                     font=("MS Reference Sans Serif", 16))
+        self.daily_label = Text(self.frame,
+                                bg="darkgrey",
+                                font=("MS Reference Sans Serif", 16),
+                                state="disabled",
+                                borderwidth=0,
+                                highlightthickness=0,
+                                takefocus=0,
+                                height=1,
+                                width=15,
+                                wrap="none",
+                                selectbackground = "darkgrey",
+                                selectforeground = "darkgrey",
+                                inactiveselectbackground = "darkgrey",
+                                cursor="arrow"
+        )
 
         if self.one_time:
             self.one_time_label.grid(row=2, column=0, sticky="nw")
+        else:
+            self.daily_label.grid(row=2, column=0, sticky="nw")
+            self.fill_daily_text()
 
-        self.enable_switch = CTkSwitch(self.frame, text="", fg_color="red", progress_color="green", variable=self.enabled, command=self.switch_toggled, width=40)
+        self.enable_switch = CTkSwitch(self.frame, text="", fg_color="red", progress_color="green", variable=self.enabled, command=self.switch_toggled, width=45)
         self.enable_switch.grid(row=1, column=self.total_columns-1, sticky="e")
 
         self.edit_button = Button(self.frame, text="Edit", bg="blue", command=self.edit_alarm)
@@ -66,11 +85,35 @@ class Alarm:
             self.alarm_label.configure(bg="darkgrey")
             self.time_label.configure(bg="darkgrey")
             self.one_time_label.configure(bg="darkgrey")
+            self.daily_label.configure(bg="darkgrey",
+                                       selectbackground = "darkgrey",
+                                       selectforeground = "darkgrey",
+                                       inactiveselectbackground = "darkgrey")
         else:
             self.frame.configure(bg="grey26")
             self.alarm_label.configure(bg="grey26")
             self.time_label.configure(bg="grey26")
             self.one_time_label.configure(bg="grey26")
+            self.daily_label.configure(bg="grey26",
+                                       selectbackground="grey26",
+                                       selectforeground="grey26",
+                                       inactiveselectbackground="grey26")
+        self.one_time_label.grid_forget()
+        self.daily_label.grid_forget()
+        if self.one_time:
+            self.one_time_label.grid(row=2, column=0, sticky="nw")
+        else:
+            self.daily_label.grid(row=2, column=0, sticky="nw")
+            self.fill_daily_text()
+
+    def fill_daily_text(self):
+        self.daily_label.config(state="normal")
+        self.daily_label.delete("1.0", END)
+        for day, enabled in zip(self.days, self.day_vars):
+            self.daily_label.insert(END, day + " ", "enabled" if enabled else "disabled")
+        self.daily_label.tag_configure("enabled", foreground="black")
+        self.daily_label.tag_configure("disabled", foreground="grey")
+        self.daily_label.config(state="disabled")
 
     def switch_toggled(self):
         self.update_frame()
