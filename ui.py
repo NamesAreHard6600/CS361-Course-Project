@@ -59,7 +59,14 @@ class UI:
         for i, v in enumerate(self.days.values()):
             self.day_vars.append(BooleanVar(value=True))
             self.day_buttons.append(Checkbutton(self.home, text=v, variable=self.day_vars[i], bg="grey17", fg="white", activebackground="grey17", activeforeground="white", selectcolor="darkgrey"))
-                
+
+        vcmdst = (self.home.register(self.is_snooze_number), '%P')
+        vcmdsl = (self.home.register(self.is_snooze_length), '%P')
+        self.edit_snooze_number_label = Label(self.home, text="Snoozes: ", bg="grey17", fg="white", justify="right", font=("MS Reference Sans Serif", 16))
+        self.edit_snooze_number = Entry(self.home, validate="key", validatecommand=vcmdst, font=("MS Reference Sans Serif", 16))
+        self.edit_snooze_length_label = Label(self.home, text="Time (Minutes): ", bg="grey17", fg="white", justify="right", font=("MS Reference Sans Serif", 16))
+        self.edit_snooze_length = Entry(self.home, validate="key", validatecommand=vcmdsl, font=("MS Reference Sans Serif", 16))
+
         self.save_button = CTkButton(self.home, text="Save", text_color="black", border_color="white", hover_color="darkgreen", border_width=2, fg_color="green", font=("MS Reference Sans Serif", 24), corner_radius=5, command=self.apply_edit, height=40)
 
         self.editing = -1
@@ -174,7 +181,18 @@ class UI:
                 button.deselect()
             button.grid(row=4, column=i, sticky="nsew", padx=5)
 
-        self.save_button.grid(row=5, column=0, columnspan=self.edit_columns, sticky="new", padx=5, pady=5)
+        self.edit_snooze_number_label.grid(row=5, column=0, columnspan=2, sticky="nwe", padx=5, pady=5)
+        self.edit_snooze_number.delete(0, END)
+        self.edit_snooze_number.insert(0, alarm.max_snoozes)
+        self.edit_snooze_number.grid(row=5, column=2, columnspan=1, sticky="nwe", padx=5, pady=5)
+
+
+        self.edit_snooze_length_label.grid(row=5, column=3, columnspan=3, sticky="nwe", padx=2, pady=5)
+        self.edit_snooze_length.delete(0, END)
+        self.edit_snooze_length.insert(0, alarm.snooze_time)
+        self.edit_snooze_length.grid(row=5, column=6, columnspan=1, sticky="nwe", padx=5, pady=5)
+
+        self.save_button.grid(row=6, column=0, columnspan=self.edit_columns, sticky="new", padx=5, pady=5)
 
         self.update_edit()
 
@@ -194,6 +212,10 @@ class UI:
         self.daily_text.grid_forget()
         for button in self.day_buttons:
             button.grid_forget()
+        self.edit_snooze_number_label.grid_forget()
+        self.edit_snooze_number.grid_forget()
+        self.edit_snooze_length_label.grid_forget()
+        self.edit_snooze_length.grid_forget()
         self.save_button.grid_forget()
 
     def update_edit(self):
@@ -216,6 +238,9 @@ class UI:
         alarm.minutes = int(self.minute_entry.get())
         for i, var in enumerate(self.day_vars):
             alarm.day_vars[i] = var.get()
+
+        alarm.max_snoozes = int(self.edit_snooze_number.get())
+        alarm.snooze_time = int(self.edit_snooze_length.get())
 
         alarm.update_frame()
 
@@ -318,6 +343,24 @@ class UI:
             return False
 
         return 0 <= int(new_value) <= 59
+
+    def is_snooze_number(self, new_value):
+        if new_value == "":
+            return True
+
+        if not new_value.isdigit():
+            return False
+
+        return 0 <= int(new_value) <= 5
+
+    def is_snooze_length(self, new_value):
+        if new_value == "":
+            return True
+
+        if not new_value.isdigit():
+            return False
+
+        return 0 <= int(new_value) <= 20
 
     def hide_all(self):
         self.hide_home()
