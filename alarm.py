@@ -4,16 +4,19 @@ from tkinter import *
 from customtkinter import *
 
 class Alarm:
-    def __init__(self, ui, title="Alarm", hour=12, minutes=0, pm=False, one_time=True):
+    def __init__(self, ui, title="Alarm", hour=12, minutes=0, one_time=True, max_snoozes=1, snooze_time=5):
         self.ui = ui
         self.title = title
         self.hour = hour
         self.minutes = minutes
-        self.pm = pm
         self.one_time = one_time
         self.enabled = BooleanVar(value=True)
         self.days = ["S", "M", "T", "W", "Th", "F", "Sa"]
         self.day_vars = [True for _ in range(7)]
+        self.max_snoozes = max_snoozes
+        self.snooze_time = snooze_time
+        self.snoozes_left = self.max_snoozes
+        self.snooze_off = None
 
         self.total_columns = 3
 
@@ -79,7 +82,7 @@ class Alarm:
     # Runs Multiple Times
     def update_frame(self):
         self.alarm_label.configure(text=self.title)
-        self.time_label.configure(text=f"{self.hour}:{self.minutes:02d} {'pm' if self.pm else 'am'}")
+        self.time_label.configure(text=f"{self.hour}:{self.minutes:02d}")
         if self.enabled.get():
             self.frame.configure(bg="darkgrey")
             self.alarm_label.configure(bg="darkgrey")
@@ -115,11 +118,27 @@ class Alarm:
         self.daily_label.tag_configure("disabled", foreground="grey")
         self.daily_label.config(state="disabled")
 
+    def check_ring(self, time):
+        if not self.enabled:
+            return False
+        if self.hour != time[0] or self.minutes != time[1]:
+            return False
+
+        if self.one_time:
+            self.enabled.set(False)
+            return True
+        elif self.is_day(time[2]):
+            return True
+
     def switch_toggled(self):
         self.update_frame()
 
     def get_alarm_num(self):
         return self.ui.get_alarm_num(self)
+
+    def is_day(self, day):
+        index = self.days.index(day)
+        return self.day_vars[index]
 
     def edit_alarm(self):
         self.ui.edit_alarm(self.get_alarm_num())
