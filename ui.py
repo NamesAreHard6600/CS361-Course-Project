@@ -5,7 +5,7 @@ from customtkinter import *
 from tkinter import messagebox
 from alarm import Alarm
 from datetime import datetime, timedelta
-
+import pygame
 
 class UI:
     def __init__(self, DEBUG):
@@ -259,6 +259,8 @@ class UI:
             self.show_home()
             raise "RINGING ALARM OUT OF BOUNDS"
         alarm = self.alarms[self.ringing]
+        pygame.mixer.music.load("sounds/default.mp3")
+        pygame.mixer.music.play(loops=-1)
         self.home.columnconfigure(0, weight=1)
         self.ring_label.configure(text=f"{alarm.title} is going off!")
         self.ring_label.grid(row=0, column=0, sticky="nwe")
@@ -275,6 +277,7 @@ class UI:
         self.turn_off_button.grid(row=4, column=0, sticky="nwe")
 
     def hide_ring(self):
+        pygame.mixer.music.stop()
         self.home.columnconfigure(0, weight=0)
         self.ring_label.grid_forget()
         self.time_label.grid_forget()
