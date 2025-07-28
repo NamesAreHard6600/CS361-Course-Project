@@ -42,6 +42,8 @@ class UI:
         self.hour_entry = Entry(self.home, validate='key', validatecommand=vcmdh, justify="right", font=("MS Reference Sans Serif", 16))
         self.semicolon = Label(self.home, text=":", fg="white", bg="grey17", justify="center", font=("MS Reference Sans Serif", 16))
         self.minute_entry = Entry(self.home, validate='key', validatecommand=vcmdm, font=("MS Reference Sans Serif", 16))
+        self.pm_var = BooleanVar(value=True)
+        self.pm_checkbox = Checkbutton(self.home, text="pm", variable=self.pm_var, bg="grey17", fg="white", activebackground="grey17", activeforeground="white", selectcolor="darkgrey")
         self.one_time_text = Label(self.home, text="One-Time", bg="grey17", fg="white")
         self.type_switch = CTkSwitch(self.home, text="", width=0, fg_color="grey", progress_color="grey", command=self.update_edit)
         self.daily_text = Label(self.home, text="Daily", bg="grey17", fg="white")
@@ -134,6 +136,12 @@ class UI:
         self.minute_entry.insert(0, alarm.minutes)
         self.minute_entry.grid(row=2, column=4, columnspan=1, sticky="nw", padx=5, pady=5)
 
+        self.pm_checkbox.grid(row=2, column=5, sticky="nw", padx=5, pady=5)
+        if not alarm.pm:
+            self.pm_checkbox.deselect()
+        else:
+            self.pm_checkbox.select()
+
         self.one_time_text.grid(row=3, column=0, columnspan=3, sticky="ne", padx=5, pady=5)
         if alarm.one_time:
             self.type_switch.deselect()
@@ -165,6 +173,7 @@ class UI:
         self.hour_entry.grid_forget()
         self.semicolon.grid_forget()
         self.minute_entry.grid_forget()
+        self.pm_checkbox.grid_forget()
         self.one_time_text.grid_forget()
         self.type_switch.grid_forget()
         self.daily_text.grid_forget()
@@ -191,10 +200,8 @@ class UI:
         alarm.hour = int(self.hour_entry.get())
         alarm.minutes = int(self.minute_entry.get())
         for i, var in enumerate(self.day_vars):
-            if var.get():
-                alarm.day_vars[i] = True
-            else:
-                alarm.day_vars[i] = False
+            alarm.day_vars[i] = var.get()
+        alarm.pm = self.pm_var.get()
 
         alarm.update_frame()
 
