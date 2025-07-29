@@ -4,7 +4,7 @@ from tkinter import *
 from customtkinter import *
 
 class Alarm:
-    def __init__(self, ui, title="Alarm", hour=12, minutes=0, one_time=True, max_snoozes=1, snooze_time=1):
+    def __init__(self, ui, title="Alarm", hour=12, minutes=0, one_time=True, max_snoozes=1, snooze_time=5):
         self.ui = ui
         self.title = title
         self.hour = hour

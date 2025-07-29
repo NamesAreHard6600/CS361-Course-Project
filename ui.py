@@ -259,25 +259,25 @@ class UI:
             self.show_home()
             raise "RINGING ALARM OUT OF BOUNDS"
         alarm = self.alarms[self.ringing]
-        pygame.mixer.music.load("sounds/default.mp3")
+        pygame.mixer.music.load("sounds/default.wav")
         pygame.mixer.music.play(loops=-1)
         self.home.columnconfigure(0, weight=1)
         self.ring_label.configure(text=f"{alarm.title} is going off!")
-        self.ring_label.grid(row=0, column=0, sticky="nwe")
+        self.ring_label.grid(row=0, column=0, sticky="nwe", padx=5, pady=5)
         # Time label updated by check_alarms
-        self.time_label.grid(row=1, column=0, sticky="nwe")
+        self.time_label.grid(row=1, column=0, sticky="nwe", padx=5, pady=5)
         if alarm.snoozes_left <= 0:
             self.snooze_button.configure(fg_color="red", state=DISABLED)
         else:
             self.snooze_button.configure(fg_color="green", state=NORMAL)
-        self.snooze_button.grid(row=2, column=0, sticky="nwe")
+        self.snooze_button.grid(row=2, column=0, sticky="nwe", padx=5, pady=5)
         second_line = f"Alarm will go off again in {alarm.snooze_time} minutes"
         self.snooze_label.configure(text=f"Snoozes Left: {alarm.snoozes_left}\n{second_line if alarm.snoozes_left != 0 else ''}")
-        self.snooze_label.grid(row=3, column=0, sticky="nwe")
-        self.turn_off_button.grid(row=4, column=0, sticky="nwe")
+        self.snooze_label.grid(row=3, column=0, sticky="nwe", padx=5, pady=5)
+        self.turn_off_button.grid(row=4, column=0, sticky="nwe", padx=5, pady=5)
 
     def hide_ring(self):
-        pygame.mixer.music.stop()
+        pygame.mixer.music.fadeout(100)  # Slightly longer fadeout for smoother transition
         self.home.columnconfigure(0, weight=0)
         self.ring_label.grid_forget()
         self.time_label.grid_forget()
@@ -292,12 +292,12 @@ class UI:
         alarm = self.alarms[self.ringing]
         self.home.columnconfigure(0, weight=1)
         self.snooze_title.configure(text=f"{alarm.title} is Snoozed")
-        self.snooze_title.grid(row=0, column=0, sticky="nwe")
-        self.time_label.grid(row=1, column=0, sticky="nwe")
-        self.time_left_label.grid(row=2, column=0, sticky="nwe")
+        self.snooze_title.grid(row=0, column=0, sticky="nwe", padx=5, pady=5)
+        self.time_label.grid(row=1, column=0, sticky="nwe", padx=5, pady=5)
+        self.time_left_label.grid(row=2, column=0, sticky="nwe", padx=5, pady=5)
         self.snooze_label.configure(text=f"Snoozes Left: {alarm.snoozes_left}")
-        self.snooze_label.grid(row=3, column=0, sticky="nwe")
-        self.turn_off_button.grid(row=4, column=0, sticky="nwe")
+        self.snooze_label.grid(row=3, column=0, sticky="nwe", padx=5, pady=5)
+        self.turn_off_button.grid(row=4, column=0, sticky="nwe", padx=5, pady=5)
         self.update_snooze()
 
     def hide_snooze(self):
@@ -313,6 +313,7 @@ class UI:
         time_left = alarm.snooze_off - datetime.now()
         seconds = int(time_left.total_seconds())
         if seconds <= 0:
+            alarm.snooze_off = None
             self.hide_all()
             self.show_ring()
         self.time_left_label.configure(text=f"{seconds//60}:{seconds%60:02d}")
