@@ -62,10 +62,11 @@ class UI:
 
         vcmdst = (self.home.register(self.is_snooze_number), '%P')
         vcmdsl = (self.home.register(self.is_snooze_length), '%P')
-        self.edit_snooze_number_label = Label(self.home, text="Snoozes: ", bg="grey17", fg="white", justify="right", font=("MS Reference Sans Serif", 16))
+        self.edit_snooze_number_label = Label(self.home, text="Snoozes: ", bg="grey17", fg="white", justify="right", font=("MS Reference Sans Serif", 12))
         self.edit_snooze_number = CTkEntry(self.home, validate="key", validatecommand=vcmdst, font=("MS Reference Sans Serif", 16), corner_radius=5, fg_color="white", text_color="black")
-        self.edit_snooze_length_label = Label(self.home, text="Time (Minutes): ", bg="grey17", fg="white", justify="right", font=("MS Reference Sans Serif", 16))
+        self.edit_snooze_length_label = Label(self.home, text="Time (Minutes): ", bg="grey17", fg="white", justify="right", font=("MS Reference Sans Serif", 12))
         self.edit_snooze_length = CTkEntry(self.home, validate="key", validatecommand=vcmdsl, font=("MS Reference Sans Serif", 16), corner_radius=5, fg_color="white", text_color="black")
+
 
         self.save_button = CTkButton(self.home, text="Save", text_color="black", border_color="white", hover_color="darkgreen", border_width=2, fg_color="green", font=("MS Reference Sans Serif", 24), corner_radius=5, command=self.apply_edit, height=40)
 
