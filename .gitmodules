@@ -1,0 +1,3 @@
+[submodule "microservices/math-challenge"]
+	path = microservices/math-challenge
+	url = https://github.com/JonahSutch/MicroserviceA.git
