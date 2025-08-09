@@ -6,6 +6,7 @@ from tkinter import messagebox
 from alarm import Alarm
 from datetime import datetime, timedelta
 import pygame
+import zmq
 
 class UI:
     def __init__(self, DEBUG):
@@ -88,6 +89,28 @@ class UI:
         # Snooze label taken from ring
         # Turn off button taken from ring
 
+        # All/Most Challenges:
+        # Stealing timer from time_left_label
+        self.challenge_label = Label(self.home, text="T Pose", fg="white", bg="grey17", justify="center", font=("MS Reference Sans Serif", 24))
+        self.challenge_answer_box = CTkEntry(self.home, font=("MS Reference Sans Serif", 16), corner_radius=5, fg_color="white", text_color="black")
+        self.challenge_submit_button = CTkButton(self.home, text="Submit", text_color="black", border_color="white", hover_color="darkgreen", border_width=2, fg_color="green", font=("MS Reference Sans Serif", 24), corner_radius=5, command=self.submit_challenge, height=40)
+        self.home.bind('<Return>', self.submit_challenge)
+        self.challenge_complete_label = Label(self.home, text="T Pose", fg="white", bg="grey17", justify="center", font=("MS Reference Sans Serif", 24))
+
+
+        # Microservice connections
+        self.math_context = zmq.Context()
+        self.sockets = []
+        self.ports = []
+        self.sockets.append(self.math_context.socket(zmq.REQ))
+        self.MATH = 0
+        self.ports.append(7865)
+        self.sockets[self.MATH].connect(f"tcp://localhost:{self.ports[self.MATH]}")
+
+        self.show_challenge_functions = [self.show_math]
+        self.generate_challenge_functions = [self.generate_math]
+
+        self.current_challenge = None
 
         self.show_home()
 
@@ -276,6 +299,10 @@ class UI:
         self.snooze_label.configure(text=f"Snoozes Left: {alarm.snoozes_left}\n{second_line if alarm.snoozes_left != 0 else ''}")
         self.snooze_label.grid(row=3, column=0, sticky="nwe", padx=5, pady=5)
         self.turn_off_button.grid(row=4, column=0, sticky="nwe", padx=5, pady=5)
+        if alarm.challenge is None:
+            self.turn_off_button.configure(text="Turn Off")
+        else:
+            self.turn_off_button.configure(text="Start Challenge")
 
     def hide_ring(self):
         pygame.mixer.music.fadeout(100)  # Slightly longer fadeout for smoother transition
@@ -319,10 +346,66 @@ class UI:
             self.show_ring()
         self.time_left_label.configure(text=f"{seconds//60}:{seconds%60:02d}")
 
+    def show_math(self):
+        self.home.columnconfigure(0, weight=1)
+        self.time_left_label.grid(row=0,column=0, pady=5, padx=5)
+        self.challenge_label.grid(row=1,column=0, pady=5, padx=5)
+        self.challenge_answer_box.configure(height=15)
+        self.challenge_answer_box.grid(row=2,column=0, pady=5, padx=5)
+        self.challenge_submit_button.grid(row=3, column=0, pady=5, padx=5)
+        self.challenge_complete_label.grid(row=4, column=0, pady=5, padx=5)
+        self.generate_math()
+
+    def hide_math(self):
+        self.home.columnconfigure(0, weight=0)
+        self.time_left_label.grid_forget()
+        self.challenge_label.grid_forget()
+        self.challenge_answer_box.grid_forget()
+        self.challenge_submit_button.grid_forget()
+        self.challenge_complete_label.grid_forget()
+
+    def default_generate(self):
+        alarm = self.alarms[self.ringing]
+        self.challenge_complete_label.configure(text=f"{alarm.challenges_complete}/{alarm.max_challenges}")
+        alarm.challenge_off = datetime.now() + timedelta(seconds=alarm.challenge_time+1)
+
+    def generate_math(self):
+        self.default_generate()
+        alarm = self.alarms[self.ringing]
+        self.challenge_answer_box.delete(0, END)
+        self.sockets[self.MATH].send_pyobj(["request", alarm.challenge_difficulty.lower()])
+        challenge = self.sockets[self.MATH].recv_pyobj()
+        self.challenge_label.configure(text=challenge[1])
+        self.current_challenge = self.MATH
+
+    def update_challenge(self):
+        alarm = self.alarms[self.ringing]
+        time_left = alarm.challenge_off - datetime.now()
+        seconds = int(time_left.total_seconds())
+        if seconds <= 0:
+            alarm.challenge_end = None
+            self.hide_all()
+            self.show_ring()
+        self.time_left_label.configure(
+            text=f"{seconds // 60}:{seconds % 60:02d}")
+
+    def hide_all(self):
+        self.hide_home()
+        self.hide_edit()
+        self.hide_ring()
+        self.hide_snooze()
+        self.hide_math()
+
     def turn_off_alarm(self):
-        self.ringing = -1
-        self.hide_all()
-        self.show_home()
+        alarm = self.alarms[self.ringing]
+        if alarm.challenge is None:
+            self.ringing = -1
+            self.hide_all()
+            self.show_home()
+        else:
+            alarm.challenges_complete = 0
+            self.hide_all()
+            self.show_challenge_functions[alarm.challenge]()
 
     def snooze_alarm(self):
         alarm = self.alarms[self.ringing]
@@ -367,11 +450,23 @@ class UI:
 
         return 0 <= int(new_value) <= 20
 
-    def hide_all(self):
-        self.hide_home()
-        self.hide_edit()
-        self.hide_ring()
-        self.hide_snooze()
+    def submit_challenge(self, event=None):
+        if not self.challenge_complete_label.grid_info():
+            # Not on a challenge screen, so exit out of button press
+            return
+        self.sockets[self.current_challenge].send_pyobj(["answer", self.challenge_answer_box.get()])
+        result = self.sockets[self.current_challenge].recv_pyobj()
+
+        alarm = self.alarms[self.ringing]
+        if result[0] != "error" and result[1]:
+            alarm.challenges_complete += 1
+            if alarm.challenges_complete >= alarm.max_challenges:
+                self.ringing = -1
+                self.hide_all()
+                self.show_home()
+                return
+
+        self.generate_challenge_functions[alarm.challenge]()
 
     def check_alarms(self):
         # [Hour, Minute, Day]
@@ -382,6 +477,9 @@ class UI:
             alarm = self.alarms[self.ringing]
             if alarm.snooze_off:
                 self.update_snooze()
+            if self.challenge_complete_label.grid_info():
+                self.update_challenge()
+
             self.home.after(100, self.check_alarms)
             return
         # No need to check anything else
@@ -407,6 +505,4 @@ class UI:
     def debug_test(self):
         self.hide_all()
         self.ringing = 0
-        alarm = self.alarms[self.ringing]
-        alarm.snoozes_left = alarm.max_snoozes
         self.show_ring()

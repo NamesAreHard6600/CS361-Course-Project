@@ -20,6 +20,13 @@ class Alarm:
 
         self.total_columns = 3
 
+        self.challenge = self.ui.MATH
+        self.challenges_complete = 0
+        self.max_challenges = 5
+        self.challenge_time = 15
+        self.challenge_end = None
+        self.challenge_difficulty = "Hard"
+
         self.form_frame()
 
     # Runs Once
