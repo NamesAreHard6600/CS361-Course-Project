@@ -68,7 +68,7 @@ class UI:
         self.edit_snooze_length_label = Label(self.home, text="Time (Minutes): ", bg="grey17", fg="white", justify="right", font=("MS Reference Sans Serif", 12))
         self.edit_snooze_length = CTkEntry(self.home, validate="key", validatecommand=vcmdsl, font=("MS Reference Sans Serif", 16), corner_radius=5, fg_color="white", text_color="black")
         self.edit_challenge_label = Label(self.home, text="Challenge: ", bg="grey17", fg="white", justify="left", font=("MS Reference Sans Serif", 12))
-        self.edit_challenge = CTkOptionMenu(self.home, values=["None", "Math"], font=("MS Reference Sans Serif", 16), corner_radius=5, fg_color="white", text_color="black")
+        self.edit_challenge = CTkOptionMenu(self.home, values=["None", "Math", "Anagram"], font=("MS Reference Sans Serif", 12), corner_radius=5, fg_color="white", text_color="black")
         self.edit_challenge_number_label = Label(self.home, text="Number of Challenges: ", bg="grey17", fg="white", justify="left", font=("MS Reference Sans Serif", 12))
         self.edit_challenge_number = CTkOptionMenu(self.home, values=["1", "2", "5", "10"], font=("MS Reference Sans Serif", 16), corner_radius=5, fg_color="white", text_color="black")
         self.edit_challenge_time_label = Label(self.home, text="Challenge Length (Seconds): ", bg="grey17", fg="white", justify="left", font=("MS Reference Sans Serif", 12))
@@ -104,18 +104,25 @@ class UI:
 
 
         # Microservice connections
-        self.math_context = zmq.Context()
         self.sockets = []
         self.ports = []
+
+        self.math_context = zmq.Context()
         self.sockets.append(self.math_context.socket(zmq.REQ))
         self.MATH = 0
         self.ports.append(7865)
         self.sockets[self.MATH].connect(f"tcp://localhost:{self.ports[self.MATH]}")
 
-        self.show_challenge_functions = [self.show_math]
-        self.generate_challenge_functions = [self.generate_math]
+        self.anagram_context = zmq.Context()
+        self.sockets.append(self.anagram_context.socket(zmq.REQ))
+        self.ANAGRAM = 1
+        self.ports.append(5001)
+        self.sockets[self.ANAGRAM].connect(f"tcp://localhost:{self.ports[self.ANAGRAM]}")
 
-        self.text_to_challenge = {"None": None, "Math": self.MATH}
+        self.show_challenge_functions = [self.show_math, self.show_anagram]
+        self.generate_challenge_functions = [self.generate_math, self.generate_anagram]
+
+        self.text_to_challenge = {"None": None, "Math": self.MATH, "Anagram": self.ANAGRAM}
 
         self.current_challenge = None
 
@@ -378,17 +385,16 @@ class UI:
             self.show_ring()
         self.time_left_label.configure(text=f"{seconds//60}:{seconds%60:02d}")
 
-    def show_math(self):
+    def show_default_challenge(self):
         self.home.columnconfigure(0, weight=1)
-        self.time_left_label.grid(row=0,column=0, pady=5, padx=5)
-        self.challenge_label.grid(row=1,column=0, pady=5, padx=5)
+        self.time_left_label.grid(row=0, column=0, pady=5, padx=5)
+        self.challenge_label.grid(row=1, column=0, pady=5, padx=5)
         self.challenge_answer_box.configure(height=15)
-        self.challenge_answer_box.grid(row=2,column=0, pady=5, padx=5)
+        self.challenge_answer_box.grid(row=2, column=0, pady=5, padx=5)
         self.challenge_submit_button.grid(row=3, column=0, pady=5, padx=5)
         self.challenge_complete_label.grid(row=4, column=0, pady=5, padx=5)
-        self.generate_math()
 
-    def hide_math(self):
+    def hide_default_challenge(self):
         self.home.columnconfigure(0, weight=0)
         self.time_left_label.grid_forget()
         self.challenge_label.grid_forget()
@@ -396,19 +402,36 @@ class UI:
         self.challenge_submit_button.grid_forget()
         self.challenge_complete_label.grid_forget()
 
-    def default_generate(self):
+    def show_math(self):
+        self.show_default_challenge()
+        self.generate_math()
+
+    def hide_math(self):
+        self.hide_default_challenge()
+
+    def show_anagram(self):
+        self.show_default_challenge()
+        self.generate_anagram()
+
+    def hide_anagram(self):
+        self.hide_default_challenge()
+
+    def default_generate(self, challenge_type):
         alarm = self.alarms[self.ringing]
         self.challenge_complete_label.configure(text=f"{alarm.challenges_complete}/{alarm.max_challenges}")
         alarm.challenge_off = datetime.now() + timedelta(seconds=alarm.challenge_time+1)
-
-    def generate_math(self):
-        self.default_generate()
         alarm = self.alarms[self.ringing]
         self.challenge_answer_box.delete(0, END)
-        self.sockets[self.MATH].send_pyobj(["request", alarm.challenge_difficulty.lower()])
-        challenge = self.sockets[self.MATH].recv_pyobj()
+        self.sockets[challenge_type].send_pyobj(["request", alarm.challenge_difficulty.lower()])
+        challenge = self.sockets[challenge_type].recv_pyobj()
         self.challenge_label.configure(text=challenge[1])
-        self.current_challenge = self.MATH
+        self.current_challenge = challenge_type
+
+    def generate_math(self):
+        self.default_generate(self.MATH)
+
+    def generate_anagram(self):
+        self.default_generate(self.ANAGRAM)
 
     def update_challenge(self):
         alarm = self.alarms[self.ringing]

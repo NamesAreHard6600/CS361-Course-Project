@@ -1,3 +1,6 @@
 [submodule "microservices/math-challenge"]
 	path = microservices/math-challenge
 	url = https://github.com/JonahSutch/MicroserviceA.git
+[submodule "microservices/anagram-challenge"]
+	path = microservices/anagram-challenge
+	url = https://github.com/NamesAreHard6600/Anagram-Challenge-Microservice.git
