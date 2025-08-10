@@ -35,7 +35,7 @@ class UI:
 
         # Edit Page Vars
         self.edit_columns = 7
-        self.edit_rows = 6
+        self.edit_rows = 9
         self.edit_exit_button = CTkButton(self.home, text="X", text_color="black", border_color="white", hover_color="darkred", border_width=2, fg_color="red", font=("MS Reference Sans Serif", 24), corner_radius=5, command=self.cancel_edit, height=38, width=38)
         self.title_edit = CTkEntry(self.home, font=("MS Reference Sans Serif", 16), corner_radius=5, fg_color="white", text_color="black")
         vcmdh = (self.home.register(self.is_hour), '%P')
@@ -67,7 +67,12 @@ class UI:
         self.edit_snooze_number = CTkEntry(self.home, validate="key", validatecommand=vcmdst, font=("MS Reference Sans Serif", 16), corner_radius=5, fg_color="white", text_color="black")
         self.edit_snooze_length_label = Label(self.home, text="Time (Minutes): ", bg="grey17", fg="white", justify="right", font=("MS Reference Sans Serif", 12))
         self.edit_snooze_length = CTkEntry(self.home, validate="key", validatecommand=vcmdsl, font=("MS Reference Sans Serif", 16), corner_radius=5, fg_color="white", text_color="black")
-
+        self.edit_challenge_label = Label(self.home, text="Challenge: ", bg="grey17", fg="white", justify="left", font=("MS Reference Sans Serif", 12))
+        self.edit_challenge = CTkOptionMenu(self.home, values=["None", "Math"], font=("MS Reference Sans Serif", 16), corner_radius=5, fg_color="white", text_color="black")
+        self.edit_challenge_number_label = Label(self.home, text="Number of Challenges: ", bg="grey17", fg="white", justify="left", font=("MS Reference Sans Serif", 12))
+        self.edit_challenge_number = CTkOptionMenu(self.home, values=["1", "2", "5", "10"], font=("MS Reference Sans Serif", 16), corner_radius=5, fg_color="white", text_color="black")
+        self.edit_challenge_time_label = Label(self.home, text="Challenge Length (Seconds): ", bg="grey17", fg="white", justify="left", font=("MS Reference Sans Serif", 12))
+        self.edit_challenge_time = CTkOptionMenu(self.home, values=["15", "30", "45", "60"], font=("MS Reference Sans Serif", 16), corner_radius=5, fg_color="white", text_color="black")
 
         self.save_button = CTkButton(self.home, text="Save", text_color="black", border_color="white", hover_color="darkgreen", border_width=2, fg_color="green", font=("MS Reference Sans Serif", 24), corner_radius=5, command=self.apply_edit, height=40)
 
@@ -109,6 +114,8 @@ class UI:
 
         self.show_challenge_functions = [self.show_math]
         self.generate_challenge_functions = [self.generate_math]
+
+        self.text_to_challenge = {"None": None, "Math": self.MATH}
 
         self.current_challenge = None
 
@@ -209,14 +216,28 @@ class UI:
         self.edit_snooze_number.delete(0, END)
         self.edit_snooze_number.insert(0, alarm.max_snoozes)
         self.edit_snooze_number.grid(row=5, column=2, columnspan=1, sticky="nwe", padx=5, pady=5)
-
-
         self.edit_snooze_length_label.grid(row=5, column=3, columnspan=3, sticky="nwe", padx=2, pady=5)
         self.edit_snooze_length.delete(0, END)
         self.edit_snooze_length.insert(0, alarm.snooze_time)
         self.edit_snooze_length.grid(row=5, column=6, columnspan=1, sticky="nwe", padx=5, pady=5)
 
-        self.save_button.grid(row=6, column=0, columnspan=self.edit_columns, sticky="new", padx=10, pady=10)
+        self.edit_challenge_label.grid(row=6, column=0, columnspan=self.edit_columns-2, sticky="nw", padx=5, pady=5)
+        self.edit_challenge.grid(row=6, column=self.edit_columns-2, columnspan=2, sticky="new", padx=5, pady=5)
+        for key, value in self.text_to_challenge.items():
+            if value == alarm.challenge:
+                self.edit_challenge.set(key)
+                break
+
+        self.edit_challenge_number_label.grid(row=7, column=0, columnspan=self.edit_columns - 2, sticky="nw", padx=5, pady=5)
+        self.edit_challenge_number.grid(row=7, column=self.edit_columns - 2, columnspan=2, sticky="new", padx=5, pady=5)
+        self.edit_challenge_number.set(str(alarm.max_challenges))
+
+        self.edit_challenge_time_label.grid(row=8, column=0, columnspan=self.edit_columns - 2, sticky="nw", padx=5, pady=5)
+        self.edit_challenge_time.grid(row=8, column=self.edit_columns - 2, columnspan=2, sticky="new", padx=5, pady=5)
+        self.edit_challenge_time.set(str(alarm.challenge_time))
+
+        self.save_button.grid(row=9, column=0, columnspan=self.edit_columns, sticky="new", padx=10, pady=10)
+
 
         self.update_edit()
 
@@ -240,6 +261,12 @@ class UI:
         self.edit_snooze_number.grid_forget()
         self.edit_snooze_length_label.grid_forget()
         self.edit_snooze_length.grid_forget()
+        self.edit_challenge_label.grid_forget()
+        self.edit_challenge.grid_forget()
+        self.edit_challenge_number_label.grid_forget()
+        self.edit_challenge_number.grid_forget()
+        self.edit_challenge_time_label.grid_forget()
+        self.edit_challenge_time.grid_forget()
         self.save_button.grid_forget()
 
     def update_edit(self):
@@ -265,6 +292,11 @@ class UI:
 
         alarm.max_snoozes = int(self.edit_snooze_number.get())
         alarm.snooze_time = int(self.edit_snooze_length.get())
+
+        challenge = self.edit_challenge.get()
+        alarm.challenge = self.text_to_challenge[challenge]
+        alarm.max_challenges = int(self.edit_challenge_number.get())
+        alarm.challenge_time = int(self.edit_challenge_time.get())
 
         alarm.update_frame()
 
