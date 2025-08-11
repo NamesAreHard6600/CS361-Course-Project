@@ -98,6 +98,7 @@ class UI:
 
         # All/Most Challenges:
         # Stealing timer from time_left_label
+        self.challenge_title = Label(self.home, text="T Pose", fg="white", bg="grey17", justify="center", font=("MS Reference Sans Serif", 16))
         self.challenge_label = Label(self.home, text="T Pose", fg="white", bg="grey17", justify="center", font=("MS Reference Sans Serif", 24))
         self.challenge_answer_box = CTkEntry(self.home, font=("MS Reference Sans Serif", 16), corner_radius=5, fg_color="white", text_color="black")
         self.challenge_submit_button = CTkButton(self.home, text="Submit", text_color="black", border_color="white", hover_color="darkgreen", border_width=2, fg_color="green", font=("MS Reference Sans Serif", 24), corner_radius=5, command=self.submit_challenge, height=40)
@@ -403,11 +404,12 @@ class UI:
     def show_default_challenge(self):
         self.home.columnconfigure(0, weight=1)
         self.time_left_label.grid(row=0, column=0, pady=5, padx=5)
-        self.challenge_label.grid(row=1, column=0, pady=5, padx=5)
+        self.challenge_title.grid(row=1, column=0, pady=5, padx=5)
+        self.challenge_label.grid(row=2, column=0, pady=5, padx=5)
         self.challenge_answer_box.configure(height=15)
-        self.challenge_answer_box.grid(row=2, column=0, pady=5, padx=5)
-        self.challenge_submit_button.grid(row=3, column=0, pady=5, padx=5)
-        self.challenge_complete_label.grid(row=4, column=0, pady=5, padx=5)
+        self.challenge_answer_box.grid(row=3, column=0, pady=5, padx=5)
+        self.challenge_submit_button.grid(row=4, column=0, pady=5, padx=5)
+        self.challenge_complete_label.grid(row=5, column=0, pady=5, padx=5)
 
     def hide_default_challenge(self):
         self.home.columnconfigure(0, weight=0)
@@ -419,6 +421,7 @@ class UI:
 
     def show_math(self):
         self.show_default_challenge()
+        self.challenge_title.configure(text="Solve This Problem")
         self.generate_math()
 
     def hide_math(self):
@@ -426,6 +429,7 @@ class UI:
 
     def show_anagram(self):
         self.show_default_challenge()
+        self.challenge_title.configure(text="Unscramble This Word")
         self.generate_anagram()
 
     def hide_anagram(self):
@@ -433,6 +437,7 @@ class UI:
 
     def show_typing(self):
         self.show_default_challenge()
+        self.challenge_title.configure(text="Type This Text")
         self.challenge_label.configure(font = ("MS Reference Sans Serif", 16))
         self.generate_typing()
 
