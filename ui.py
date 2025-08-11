@@ -68,7 +68,7 @@ class UI:
         self.edit_snooze_length_label = Label(self.home, text="Time (Minutes): ", bg="grey17", fg="white", justify="right", font=("MS Reference Sans Serif", 12))
         self.edit_snooze_length = CTkEntry(self.home, validate="key", validatecommand=vcmdsl, font=("MS Reference Sans Serif", 16), corner_radius=5, fg_color="white", text_color="black")
         self.edit_challenge_label = Label(self.home, text="Challenge: ", bg="grey17", fg="white", justify="left", font=("MS Reference Sans Serif", 12))
-        self.edit_challenge = CTkOptionMenu(self.home, values=["None", "Math", "Anagram", "Typing"], font=("MS Reference Sans Serif", 12), corner_radius=5, fg_color="white", text_color="black")
+        self.edit_challenge = CTkOptionMenu(self.home, values=["None", "Math", "Anagram", "Typing", "Missing"], font=("MS Reference Sans Serif", 12), corner_radius=5, fg_color="white", text_color="black")
         self.edit_challenge_difficulty_label = Label(self.home, text="Challenge: ", bg="grey17", fg="white", justify="left", font=("MS Reference Sans Serif", 12))
         self.edit_challenge_difficulty = CTkOptionMenu(self.home, values=["Easy", "Medium", "Hard"], font=("MS Reference Sans Serif", 12), corner_radius=5, fg_color="white", text_color="black")
         self.edit_challenge_number_label = Label(self.home, text="Number of Challenges: ", bg="grey17", fg="white", justify="left", font=("MS Reference Sans Serif", 12))
@@ -123,15 +123,21 @@ class UI:
         self.sockets[self.ANAGRAM].connect(f"tcp://localhost:{self.ports[self.ANAGRAM]}")
 
         self.typing_context = zmq.Context()
-        self.sockets.append(self.anagram_context.socket(zmq.REQ))
+        self.sockets.append(self.typing_context.socket(zmq.REQ))
         self.TYPING = 2
         self.ports.append(5002)
         self.sockets[self.TYPING].connect(f"tcp://localhost:{self.ports[self.TYPING]}")
 
-        self.show_challenge_functions = [self.show_math, self.show_anagram, self.show_typing]
-        self.generate_challenge_functions = [self.generate_math, self.generate_anagram, self.generate_typing]
+        self.missing_context = zmq.Context()
+        self.sockets.append(self.missing_context.socket(zmq.REQ))
+        self.MISSING = 3
+        self.ports.append(5003)
+        self.sockets[self.MISSING].connect(f"tcp://localhost:{self.ports[self.MISSING]}")
 
-        self.text_to_challenge = {"None": None, "Math": self.MATH, "Anagram": self.ANAGRAM, "Typing": self.TYPING}
+        self.show_challenge_functions = [self.show_math, self.show_anagram, self.show_typing, self.show_missing]
+        self.generate_challenge_functions = [self.generate_math, self.generate_anagram, self.generate_typing, self.generate_missing]
+
+        self.text_to_challenge = {"None": None, "Math": self.MATH, "Anagram": self.ANAGRAM, "Typing": self.TYPING, "Missing": self.MISSING}
 
         self.current_challenge = None
 
@@ -166,6 +172,7 @@ class UI:
         for i, a in enumerate(self.alarms):
             if alarm == a:
                 return i
+        return -1
 
     def show_home(self):
         self.home.grid_rowconfigure(1, weight=1)
@@ -414,6 +421,7 @@ class UI:
     def hide_default_challenge(self):
         self.home.columnconfigure(0, weight=0)
         self.time_left_label.grid_forget()
+        self.challenge_title.grid_forget()
         self.challenge_label.grid_forget()
         self.challenge_answer_box.grid_forget()
         self.challenge_submit_button.grid_forget()
@@ -445,6 +453,14 @@ class UI:
         self.challenge_label.configure(font=("MS Reference Sans Serif", 24))
         self.hide_default_challenge()
 
+    def show_missing(self):
+        self.show_default_challenge()
+        self.challenge_title.configure(text="Solve this Word")
+        self.generate_missing()
+
+    def hide_missing(self):
+        self.hide_default_challenge()
+
     def default_generate(self, challenge_type):
         alarm = self.alarms[self.ringing]
         self.challenge_complete_label.configure(text=f"{alarm.challenges_complete}/{alarm.max_challenges}")
@@ -464,6 +480,9 @@ class UI:
 
     def generate_typing(self):
         self.default_generate(self.TYPING)
+
+    def generate_missing(self):
+        self.default_generate(self.MISSING)
 
     def update_challenge(self):
         alarm = self.alarms[self.ringing]
@@ -592,6 +611,11 @@ class UI:
         self.home.mainloop()
 
     def debug_test(self):
-        self.hide_all()
-        self.ringing = 0
-        self.show_ring()
+        if self.ringing == -1:
+            self.hide_all()
+            self.ringing = 0
+            self.show_ring()
+        else:
+            self.hide_all()
+            self.ringing = -1
+            self.show_home()

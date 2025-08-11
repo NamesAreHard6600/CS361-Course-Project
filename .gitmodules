@@ -7,3 +7,6 @@
 [submodule "microservices/typing-challenge"]
 	path = microservices/typing-challenge
 	url = https://github.com/NamesAreHard6600/Typing-Challenge-Microservice.git
+[submodule "microservices/missing-letter-challenge"]
+	path = microservices/missing-letter-challenge
+	url = https://github.com/NamesAreHard6600/Missing-Letters-Challenge.git
