@@ -35,7 +35,7 @@ class UI:
 
         # Edit Page Vars
         self.edit_columns = 7
-        self.edit_rows = 9
+        self.edit_rows = 10
         self.edit_exit_button = CTkButton(self.home, text="X", text_color="black", border_color="white", hover_color="darkred", border_width=2, fg_color="red", font=("MS Reference Sans Serif", 24), corner_radius=5, command=self.cancel_edit, height=38, width=38)
         self.title_edit = CTkEntry(self.home, font=("MS Reference Sans Serif", 16), corner_radius=5, fg_color="white", text_color="black")
         vcmdh = (self.home.register(self.is_hour), '%P')
@@ -68,10 +68,12 @@ class UI:
         self.edit_snooze_length_label = Label(self.home, text="Time (Minutes): ", bg="grey17", fg="white", justify="right", font=("MS Reference Sans Serif", 12))
         self.edit_snooze_length = CTkEntry(self.home, validate="key", validatecommand=vcmdsl, font=("MS Reference Sans Serif", 16), corner_radius=5, fg_color="white", text_color="black")
         self.edit_challenge_label = Label(self.home, text="Challenge: ", bg="grey17", fg="white", justify="left", font=("MS Reference Sans Serif", 12))
-        self.edit_challenge = CTkOptionMenu(self.home, values=["None", "Math", "Anagram"], font=("MS Reference Sans Serif", 12), corner_radius=5, fg_color="white", text_color="black")
+        self.edit_challenge = CTkOptionMenu(self.home, values=["None", "Math", "Anagram", "Typing"], font=("MS Reference Sans Serif", 12), corner_radius=5, fg_color="white", text_color="black")
+        self.edit_challenge_difficulty_label = Label(self.home, text="Challenge: ", bg="grey17", fg="white", justify="left", font=("MS Reference Sans Serif", 12))
+        self.edit_challenge_difficulty = CTkOptionMenu(self.home, values=["Easy", "Medium", "Hard"], font=("MS Reference Sans Serif", 12), corner_radius=5, fg_color="white", text_color="black")
         self.edit_challenge_number_label = Label(self.home, text="Number of Challenges: ", bg="grey17", fg="white", justify="left", font=("MS Reference Sans Serif", 12))
         self.edit_challenge_number = CTkOptionMenu(self.home, values=["1", "2", "5", "10"], font=("MS Reference Sans Serif", 16), corner_radius=5, fg_color="white", text_color="black")
-        self.edit_challenge_time_label = Label(self.home, text="Challenge Length (Seconds): ", bg="grey17", fg="white", justify="left", font=("MS Reference Sans Serif", 12))
+        self.edit_challenge_time_label = Label(self.home, text="Challenge Timer (Seconds): ", bg="grey17", fg="white", justify="left", font=("MS Reference Sans Serif", 12))
         self.edit_challenge_time = CTkOptionMenu(self.home, values=["15", "30", "45", "60"], font=("MS Reference Sans Serif", 16), corner_radius=5, fg_color="white", text_color="black")
 
         self.save_button = CTkButton(self.home, text="Save", text_color="black", border_color="white", hover_color="darkgreen", border_width=2, fg_color="green", font=("MS Reference Sans Serif", 24), corner_radius=5, command=self.apply_edit, height=40)
@@ -119,10 +121,16 @@ class UI:
         self.ports.append(5001)
         self.sockets[self.ANAGRAM].connect(f"tcp://localhost:{self.ports[self.ANAGRAM]}")
 
-        self.show_challenge_functions = [self.show_math, self.show_anagram]
-        self.generate_challenge_functions = [self.generate_math, self.generate_anagram]
+        self.typing_context = zmq.Context()
+        self.sockets.append(self.anagram_context.socket(zmq.REQ))
+        self.TYPING = 2
+        self.ports.append(5002)
+        self.sockets[self.TYPING].connect(f"tcp://localhost:{self.ports[self.TYPING]}")
 
-        self.text_to_challenge = {"None": None, "Math": self.MATH, "Anagram": self.ANAGRAM}
+        self.show_challenge_functions = [self.show_math, self.show_anagram, self.show_typing]
+        self.generate_challenge_functions = [self.generate_math, self.generate_anagram, self.generate_typing]
+
+        self.text_to_challenge = {"None": None, "Math": self.MATH, "Anagram": self.ANAGRAM, "Typing": self.TYPING}
 
         self.current_challenge = None
 
@@ -235,16 +243,20 @@ class UI:
                 self.edit_challenge.set(key)
                 break
 
-        self.edit_challenge_number_label.grid(row=7, column=0, columnspan=self.edit_columns - 2, sticky="nw", padx=5, pady=5)
-        self.edit_challenge_number.grid(row=7, column=self.edit_columns - 2, columnspan=2, sticky="new", padx=5, pady=5)
+
+        self.edit_challenge_difficulty_label.grid(row=7, column=0, columnspan=self.edit_columns - 2, sticky="nw", padx=5, pady=5)
+        self.edit_challenge_difficulty.grid(row=7, column=self.edit_columns - 2, columnspan=2, sticky="new", padx=5, pady=5)
+        self.edit_challenge_difficulty.set(str(alarm.challenge_difficulty))
+
+        self.edit_challenge_number_label.grid(row=8, column=0, columnspan=self.edit_columns - 2, sticky="nw", padx=5, pady=5)
+        self.edit_challenge_number.grid(row=8, column=self.edit_columns - 2, columnspan=2, sticky="new", padx=5, pady=5)
         self.edit_challenge_number.set(str(alarm.max_challenges))
 
-        self.edit_challenge_time_label.grid(row=8, column=0, columnspan=self.edit_columns - 2, sticky="nw", padx=5, pady=5)
-        self.edit_challenge_time.grid(row=8, column=self.edit_columns - 2, columnspan=2, sticky="new", padx=5, pady=5)
+        self.edit_challenge_time_label.grid(row=9, column=0, columnspan=self.edit_columns - 2, sticky="nw", padx=5, pady=5)
+        self.edit_challenge_time.grid(row=9, column=self.edit_columns - 2, columnspan=2, sticky="new", padx=5, pady=5)
         self.edit_challenge_time.set(str(alarm.challenge_time))
 
-        self.save_button.grid(row=9, column=0, columnspan=self.edit_columns, sticky="new", padx=10, pady=10)
-
+        self.save_button.grid(row=10, column=0, columnspan=self.edit_columns, sticky="new", padx=10, pady=10)
 
         self.update_edit()
 
@@ -270,6 +282,8 @@ class UI:
         self.edit_snooze_length.grid_forget()
         self.edit_challenge_label.grid_forget()
         self.edit_challenge.grid_forget()
+        self.edit_challenge_difficulty_label.grid_forget()
+        self.edit_challenge_difficulty.grid_forget()
         self.edit_challenge_number_label.grid_forget()
         self.edit_challenge_number.grid_forget()
         self.edit_challenge_time_label.grid_forget()
@@ -302,6 +316,7 @@ class UI:
 
         challenge = self.edit_challenge.get()
         alarm.challenge = self.text_to_challenge[challenge]
+        alarm.challenge_difficulty = self.edit_challenge_difficulty.get()
         alarm.max_challenges = int(self.edit_challenge_number.get())
         alarm.challenge_time = int(self.edit_challenge_time.get())
 
@@ -416,6 +431,15 @@ class UI:
     def hide_anagram(self):
         self.hide_default_challenge()
 
+    def show_typing(self):
+        self.show_default_challenge()
+        self.challenge_label.configure(font = ("MS Reference Sans Serif", 16))
+        self.generate_typing()
+
+    def hide_typing(self):
+        self.challenge_label.configure(font=("MS Reference Sans Serif", 24))
+        self.hide_default_challenge()
+
     def default_generate(self, challenge_type):
         alarm = self.alarms[self.ringing]
         self.challenge_complete_label.configure(text=f"{alarm.challenges_complete}/{alarm.max_challenges}")
@@ -432,6 +456,9 @@ class UI:
 
     def generate_anagram(self):
         self.default_generate(self.ANAGRAM)
+
+    def generate_typing(self):
+        self.default_generate(self.TYPING)
 
     def update_challenge(self):
         alarm = self.alarms[self.ringing]
@@ -450,6 +477,8 @@ class UI:
         self.hide_ring()
         self.hide_snooze()
         self.hide_math()
+        self.hide_anagram()
+        self.hide_typing()
 
     def turn_off_alarm(self):
         alarm = self.alarms[self.ringing]

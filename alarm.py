@@ -25,7 +25,7 @@ class Alarm:
         self.max_challenges = 5
         self.challenge_time = 30
         self.challenge_end = None
-        self.challenge_difficulty = "Hard"
+        self.challenge_difficulty = "Easy"
 
         self.form_frame()
 
